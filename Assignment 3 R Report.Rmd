@@ -17,8 +17,9 @@ data <- read.csv("project.csv")
 # Investigating Relationship Between Height and Weight Between Human Males and Females
 
 ## Introduction
+The purpose of this report is to display my knowledge and skills of creating a report of proper structure with the right amount of data and analysis.
 
-The purpose of this analysis is to find if a correlation exists between height and weight of all kinds of people. If a correlation is found, we can determine that there is some biological reasoning for this relationship and be able to accurately predict the healthy weight of individuals from their height.
+The purpose of this analysis is to find if a correlation exists between height and weight of people who do different amounts of physical activity. If a correlation is found, we can determine that there is some biological reasoning for this relationship and be able to accurately predict the healthy weight of individuals from their height.
 
 ## Data
 
@@ -50,6 +51,13 @@ dataM <- data %>%
   filter(gender == 'Male')
 summary(dataM)
 ```
+### Chi-squared tests for independence
+
+Null and alternate hypothesis:
+
+$H_0=\text{There is no correlation between weight and height}$
+
+$H_1=\text{There appears to be a correlation between weight and height}$
 
 ### Plots involving weight and height
 ```{r plot 1, echo=FALSE}
@@ -62,8 +70,11 @@ data.res = resid(data.lm)
 plot(data$height, data.res, ylab="Residuals(ei)", xlab="yˆ", main="Signif scatter plot of regression residuals")
 ```
 ### Calculations and test involving weights and height
-```{r, echo=FALSE}
-t.test(data$weight, data$height)
+```{r, echo=FALSE, warning=FALSE}
+data.pearson <- cor.test(data$weight, data$height, method ="pearson")
+data.chiq <- chisq.test(data$weight, data$height, correct=FALSE)
+data.pearson
+data.chiq
 ```
 ### Plots involving gender and physical activity
 ```{r, echo=FALSE}
@@ -111,9 +122,29 @@ data.phys.chiq
 ```
 ## Methods
 
-## Results
-### Relationship Between Height and Weight
+Packages used include:
 
+* tidyverse
+* ggplot
+* dplyr
+* stats
+
+Pearson's product-moment correlation and Pearson's chi-squared tests were used throughout the calculations to determine p values, correlation scores, and other values.
+
+## Results
+
+### Relationship Between Height and Weight
+```{r, echo=FALSE}
+if(data.pearson$estimate == 0){
+  cat("The points from height and weight fall randomly on the plot, which indicates that there \nis no linear relationship between the variables.")
+} else if(data.pearson$estimate > 0.3 && data.pearson$estimate < 0.6){
+  cat("Some points from height and weight are close to the line but other points are far from it, \nwhich indicates only a moderate linear relationship between the variables.")
+} else if(data.pearson$estimate > 0.6 && data.pearson$estimate < 1){
+  cat("The points from height and weight fall close to the line, which indicates that there is a \nstrong linear relationship between the variables. The relationship is positive because as one \nvariable increases, the other variable also increases.")
+} else{
+  cat("No clue bro")
+}
+```
 ### Mean Height Between Male and Female
 ```{r, echo=FALSE}
 if(mean(dataF$height) == mean(dataM$height)){
@@ -126,7 +157,7 @@ meanResult
 ```
 
 ### Association Between Gender and the Amount of Physical Activity
-```{r, echo=FALSE, warning=false}
+```{r, echo=FALSE, warning=FALSE}
 data.phys.chiq
 if(data.phys.chiq$p.value < 0.05){
   cat("The p value is less than the significance value of 0.05, therefore the null hypothesis can be rejected. \nMeaning there is a correlation between gender and amount of physical activity")
@@ -136,3 +167,8 @@ if(data.phys.chiq$p.value < 0.05){
 ```
 ## Conclusion/Discussion
 
+Judging from the results of the analysis, we can conclude from this specific study that there is a slight correlation between height and weight with a few outliers. We can determine that the average male is taller than the average female from this specific study. There also appears to be no correlation whatsoever between gender and the amount of exercise an individual does.
+
+From this study, a larger sample size could be used in the future to test for the correlation between weight and height since a correlation does seem to exist according to this specific study. 
+
+In conclusion we can say we met out aim of trying to find a correlation between height and weight as a correlation was found, and that further investigation and sampling is required to prove the correlation.
