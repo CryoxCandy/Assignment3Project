@@ -1,0 +1,138 @@
+---
+title: "Assignment3 Report"
+author: "Sean Henner"
+date: "02/11/2021"
+output: pdf_document
+---
+
+```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(stats)
+data <- read.csv("project.csv")
+```
+
+# STAT1378 Project Report
+# Investigating Relationship Between Height and Weight Between Human Males and Females
+
+## Introduction
+
+The purpose of this analysis is to find if a correlation exists between height and weight of all kinds of people. If a correlation is found, we can determine that there is some biological reasoning for this relationship and be able to accurately predict the healthy weight of individuals from their height.
+
+## Data
+
+The data, project.csv, was provided by the unit. The data was sampled out of a random selection of men and women aged between  26-45.
+
+The data contains 1000 entries that contain the columns as follows:
+
+* ID - A unique identifier for the entry
+* gender - Gender of the entry, between 'Male' and 'Female'.
+* height - Height of the entry, recorded in cm of two decimal places.
+* weight - Weight of the entry, recorded in kg of two decimal places.
+* phys - The level of physical activity the entry does, between 'None', 'Moderate', and 'Intense'.
+
+Summary of the data set:
+```{r, echo=FALSE}
+summary(data)
+```
+
+Summary of Females only from data set:
+```{r, echo=FALSE}
+dataF <- data %>%
+  filter(gender == 'Female')
+summary(dataF)
+```
+
+Summary of Males only from data set:
+```{r, echo=FALSE}
+dataM <- data %>%
+  filter(gender == 'Male')
+summary(dataM)
+```
+
+### Plots involving weight and height
+```{r plot 1, echo=FALSE}
+plot(data$weight, data$height, main="Signif of weight vs height", xlab="Weight", ylab="Height", pch=19)
+```
+
+```{r plot 2, echo=FALSE}
+data.lm = lm(weight ~ height, data=data) 
+data.res = resid(data.lm)
+plot(data$height, data.res, ylab="Residuals(ei)", xlab="yˆ", main="Signif scatter plot of regression residuals")
+```
+### Calculations and test involving weights and height
+```{r, echo=FALSE}
+t.test(data$weight, data$height)
+```
+### Plots involving gender and physical activity
+```{r, echo=FALSE}
+#Data manipulation and specific data frame creating
+dataF.none <- dataF %>% filter(phys == 'None')
+dataF.moderate <- dataF %>% filter(phys == 'Moderate')
+dataF.intense <- dataF %>% filter(phys == 'Intense')
+dataF.phys <- data.frame(count(dataF.none), count(dataF.moderate), count(dataF.intense))
+names(dataF.phys)[1] <- "None"
+names(dataF.phys)[2] <- "Moderate"
+names(dataF.phys)[3] <- "Intense"
+dataF.final <- data.frame(
+  phys = c("None","Moderate","Intense"),
+  value = c(dataF.phys[1,1], dataF.phys[1,2], dataF.phys[1,3])
+)
+
+dataM.none <- dataM %>% filter(phys == 'None')
+dataM.moderate <- dataM %>% filter(phys == 'Moderate')
+dataM.intense <- dataM %>% filter(phys == 'Intense')
+dataM.phys <- data.frame(count(dataM.none), count(dataM.moderate), count(dataM.intense))
+names(dataM.phys)[1] <- "None"
+names(dataM.phys)[2] <- "Moderate"
+names(dataM.phys)[3] <- "Intense"
+dataM.final <- data.frame(
+  phys = c("None","Moderate","Intense"),
+  value = c(dataM.phys[1,1], dataM.phys[1,2], dataM.phys[1,3])
+)
+
+data.phys <- merge(dataF.final,dataM.final,by="phys")
+names(data.phys)[2] <- "females"
+names(data.phys)[3] <- "males"
+```
+
+```{r plot 3, echo=FALSE}
+ggplot(dataF.final, aes(x=phys, y=value)) + geom_bar(stat="identity") + xlab("Physical Activity Group") + ylab("Count") + ggtitle("Physical activity group count of Females")
+```
+```{r plot 4, echo=FALSE}
+ggplot(dataM.final, aes(x=phys, y=value)) + geom_bar(stat="identity") + xlab("Physical Activity Group") + ylab("Count") + ggtitle("Physical activity group count of Males")
+```
+### Calculations and tests for gender and physical activity
+```{r, echo=FALSE, warning=FALSE}
+cor.test(data.phys$females, data.phys$males, method ="pearson")
+data.phys.chiq <- chisq.test(data.phys$females, data.phys$males, correct=FALSE)
+data.phys.chiq
+```
+## Methods
+
+## Results
+### Relationship Between Height and Weight
+
+### Mean Height Between Male and Female
+```{r, echo=FALSE}
+if(mean(dataF$height) == mean(dataM$height)){
+  meanResult <- "The mean height of males and females are the same."
+} else{
+  meanResult <- "The mean height of males and females are not the same."
+}
+meanResult
+
+```
+
+### Association Between Gender and the Amount of Physical Activity
+```{r, echo=FALSE, warning=false}
+data.phys.chiq
+if(data.phys.chiq$p.value < 0.05){
+  cat("The p value is less than the significance value of 0.05, therefore the null hypothesis can be rejected. \nMeaning there is a correlation between gender and amount of physical activity")
+}else{
+ cat("The p value is greater than the significance value of 0.05, therefore the null \nhypothesis cannot be rejected. This means we can support the null hypothesis and that \nthere is no correlation between gender and amount of physical activity.")
+}
+```
+## Conclusion/Discussion
+
